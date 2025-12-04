@@ -1,40 +1,55 @@
 name: Auto Post to Zenn
-
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 22 * * *' # 毎日 朝7時(JST)
-
+    - cron: '0 22 * * *' # UTC 22:00 = JST 07:00 (翌日)
 permissions:
   contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
     
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
     steps:
       - name: リポジトリを取得
         uses: actions/checkout@v4
-
+        
       - name: Pythonをセットアップ
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
-      # 【ここが修正ポイント】必要なライブラリを全部書く！
-      - name: ライブラリを入れる
-        run: pip install openai feedparser requests beautifulsoup4
-
+          cache: 'pip' # 依存関係をキャッシュして高速化
+          
+      - name: 依存関係をインストール
+        run: |
+          pip install --upgrade pip
+          pip install openai feedparser requests beautifulsoup4
+          
       - name: 記事生成スクリプトを実行
+        id: generate
         run: python tools/generator.py
-
-      - name: 生成された記事を保存
+        continue-on-error: false # エラー時は停止
+        
+      - name: 変更があるか確認
+        id: check_changes
+        run: |
+          if git diff --quiet articles/; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: 生成された記事をコミット
+        if: steps.check_changes.outputs.changes == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add articles/*.md
-          git commit -m "Auto-generate article by AI" || exit 0
+          git commit -m "🤖 Auto-generate article by AI [$(date +'%Y-%m-%d %H:%M:%S')]"
           git push
+          
+      - name: 実行結果を通知
+        if: failure()
+        run: |
+          echo "::error::記事生成に失敗しました。ログを確認してください。"
