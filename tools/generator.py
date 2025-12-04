@@ -2,7 +2,7 @@ import os
 import datetime
 import random
 import string
-import feedparser # RSSを取得するライブラリ
+import feedparser
 from openai import OpenAI
 
 # 1. 準備
@@ -11,45 +11,47 @@ today = datetime.date.today()
 slug = ''.join(random.choices(string.ascii_lowercase + string.digits, k=15))
 filename = f"articles/{slug}.md"
 
-# 2. ネタ元（Hacker NewsのRSS）を取得
-# ここを "Best" にすることで、本当に話題のネタだけ拾います
-rss_url = "https://hnrss.org/best?count=5" 
+# 2. ネタ元取得（Hacker News Best）
+# 少し多め(10件)に取得しておきます
+rss_url = "https://hnrss.org/best?count=10" 
 feed = feedparser.parse(rss_url)
 
-# 記事データを抽出（トップ3つ）
 articles_data = ""
-for i, entry in enumerate(feed.entries[:3]):
+# ここで「7本」に絞ります（[:7] の数字を変えれば5本でも10本でも調整可能）
+for i, entry in enumerate(feed.entries[:7]):
     articles_data += f"""
-    【第{i+1}位】
-    タイトル: {entry.title}
-    URL: {entry.link}
+    【記事{i+1}】
+    Source Title: {entry.title}
+    Source URL: {entry.link}
     ----
     """
 
-print("ニュースを取得しました。AIが要約中...")
+print(f"ニュースを{len(feed.entries[:7])}本取得しました。AIが要約中...")
 
-# 3. AIへの指示（創作ではなく「要約」を指示）
+# 3. AIへの指示
 system_prompt = """
 あなたは日本のエンジニア向け情報キュレーターです。
-渡された「海外のテックニュース（Hacker News）」の情報を読み、
-日本のエンジニアが興味を持つように、以下のフォーマットで日本語解説記事を作成してください。
+渡された「海外のテックニュース」を読み、Zenn読者向けに日本語で要約してください。
+
+【重要：URLの扱い】
+入力された「Source URL」は、**絶対に改変せず、そのまま出力に含めてください。**
 
 【出力フォーマット】
-## 1. [日本語のキャッチーなタイトル]
-([元記事リンク])
+## [日本語タイトル]
+[Source URLをここにそのまま転記]
 
 **概要:**
-(この記事が何について書かれているか、3行程度で要約)
+(3行要約)
 
 **エンジニアへの影響:**
-(なぜこの記事が話題なのか、技術的な視点でひとこと解説)
+(技術的視点での一言解説)
 
 ---
-(これを3記事分繰り返す)
+(これを入力された全記事分繰り返すこと)
 """
 
 user_prompt = f"""
-以下の英語記事情報を、Zenn読者向けに日本語で紹介してください。
+以下の英語記事情報を、日本語で紹介してください。
 日付: {today}
 
 {articles_data}
@@ -62,7 +64,9 @@ response = client.chat.completions.create(
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt}
     ],
-    temperature=0.2, # 要約なので創造性は低くする（事実優先）
+    temperature=0.2,
+    # 記事数が増えたので、最大トークン数を少し余裕を持たせておく（自動で伸びますが念のため）
+    max_tokens=3000, 
 )
 ai_text = response.choices[0].message.content
 
@@ -75,7 +79,7 @@ topics: ["news", "technology", "hackernews"]
 published: false
 ---
 
-世界中のエンジニアが注目している「Hacker News」の話題記事をAIが要約してお届けします。
+世界中のエンジニアが注目している「Hacker News」の話題記事トップ7をAIが要約してお届けします。
 
 {ai_text}
 
