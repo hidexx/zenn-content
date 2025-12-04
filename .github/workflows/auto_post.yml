@@ -22,7 +22,6 @@ jobs:
           cache: 'pip' # 依存関係をキャッシュして高速化
           
       - name: 依存関係をインストール
-        run: |
           run: pip install -r requirements.txt
           
       - name: 記事生成スクリプトを実行
