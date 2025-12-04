@@ -31,6 +31,7 @@ graph TD
     C -->|3. Analyze & Summarize| F["OpenAI API (GPT-4o-mini)"]
     F -->|Generate Markdown| G["Local File (.md)"]
     G -->|Git Push| H["GitHub Repository"]
+　　H -->|Auto Deploy| I["Zenn (Draft)"]
 ```
 
 ## 🚀 Quick Start
