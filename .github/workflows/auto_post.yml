@@ -2,6 +2,8 @@ name: Auto Post to Zenn
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 22 * * *' # 毎日 朝7時(JST)
 
 permissions:
   contents: write
@@ -10,7 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
-    # 【重要】さっき登録した鍵をセットする
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
@@ -23,9 +24,9 @@ jobs:
         with:
           python-version: '3.10'
 
-      # 【重要】AI用ライブラリをインストール
+      # 【ここが修正ポイント】必要なライブラリを全部書く！
       - name: ライブラリを入れる
-        run: pip install openai feedparser
+        run: pip install openai feedparser requests beautifulsoup4
 
       - name: 記事生成スクリプトを実行
         run: python tools/generator.py
