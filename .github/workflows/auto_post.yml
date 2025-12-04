@@ -25,7 +25,7 @@ jobs:
 
       # 【重要】AI用ライブラリをインストール
       - name: ライブラリを入れる
-        run: pip install openai
+        run: pip install openai feedparser
 
       - name: 記事生成スクリプトを実行
         run: python tools/generator.py
