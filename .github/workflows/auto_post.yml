@@ -8,51 +8,88 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     steps:
       - name: リポジトリを取得
         uses: actions/checkout@v4
-        
+      
       - name: Pythonをセットアップ
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
-          
+      
       - name: 依存関係をインストール
         run: pip install -r requirements.txt
-          
+      
       - name: 記事生成スクリプトを実行
-        id: generate
         run: |
           echo "=== 環境変数の確認 ==="
           echo "OPENAI_API_KEY is set: $([[ -n "$OPENAI_API_KEY" ]] && echo 'YES' || echo 'NO')"
           echo "Python version: $(python --version)"
           echo "=== スクリプト実行開始 ==="
           python tools/generator.py
-        continue-on-error: false
-        
+      
+      - name: 生成されたファイルを確認
+        run: |
+          echo "=== articles/ の内容 ==="
+          ls -la articles/
+          echo "=== Git の状態 ==="
+          git status
+      
       - name: 変更があるか確認
         id: check_changes
         run: |
-          if git diff --quiet articles/; then
+          git add articles/
+          if git diff --cached --quiet; then
             echo "changes=false" >> $GITHUB_OUTPUT
+            echo "変更なし"
           else
             echo "changes=true" >> $GITHUB_OUTPUT
+            echo "変更あり: 記事をコミットします"
           fi
-          
+      
       - name: 生成された記事をコミット
         if: steps.check_changes.outputs.changes == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add articles/*.md
           git commit -m "🤖 Auto-generate article by AI [$(date +'%Y-%m-%d %H:%M:%S')]"
           git push
-          
+      
       - name: 実行結果を通知
         if: failure()
         run: |
           echo "::error::記事生成に失敗しました。ログを確認してください。"
+```
+
+---
+
+## 🚀 修正手順
+
+1. **`.github/workflows/auto_post.yml` を開く**
+2. **右上の鉛筆マーク(✏️)で編集**
+3. **上記の内容で全て置き換え**
+4. **`Commit changes`**
+5. **Actions タブで `Run workflow` を実行**
+
+---
+
+## ✅ 今度は成功するはず!
+
+次回の実行ログでは:
+```
+=== articles/ の内容 ===
+total XX
+-rw-r--r-- 1 runner docker XXXX Dec  6 XX:XX tbineek9b62u24u.md
+
+=== Git の状態 ===
+Untracked files:
+  articles/tbineek9b62u24u.md
+
+変更あり: 記事をコミットします
+
+[main xxxxxxx] 🤖 Auto-generate article by AI [2025-12-06 XX:XX:XX]
+ 1 file changed, XX insertions(+)
+ create mode 100644 articles/tbineek9b62u24u.md
