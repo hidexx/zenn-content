@@ -57,39 +57,3 @@ jobs:
           git config --local user.name "GitHub Action"
           git commit -m "🤖 Auto-generate article by AI [$(date +'%Y-%m-%d %H:%M:%S')]"
           git push
-      
-      - name: 実行結果を通知
-        if: failure()
-        run: |
-          echo "::error::記事生成に失敗しました。ログを確認してください。"
-```
-
----
-
-## 🚀 修正手順
-
-1. **`.github/workflows/auto_post.yml` を開く**
-2. **右上の鉛筆マーク(✏️)で編集**
-3. **上記の内容で全て置き換え**
-4. **`Commit changes`**
-5. **Actions タブで `Run workflow` を実行**
-
----
-
-## ✅ 今度は成功するはず!
-
-次回の実行ログでは:
-```
-=== articles/ の内容 ===
-total XX
--rw-r--r-- 1 runner docker XXXX Dec  6 XX:XX tbineek9b62u24u.md
-
-=== Git の状態 ===
-Untracked files:
-  articles/tbineek9b62u24u.md
-
-変更あり: 記事をコミットします
-
-[main xxxxxxx] 🤖 Auto-generate article by AI [2025-12-06 XX:XX:XX]
- 1 file changed, XX insertions(+)
- create mode 100644 articles/tbineek9b62u24u.md
