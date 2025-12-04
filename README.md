@@ -14,17 +14,16 @@
 生成された記事は自動的にZennの「下書き」としてデプロイされ、人間による最終確認（Human-in-the-loop）を経て公開するワークフローを採用しています。
 
 ## ⚙️ アーキテクチャ
-
 ```mermaid
 graph TD
-    A[Cron Schedule / Manual] -->|Trigger| B(GitHub Actions)
-    B --> C{Python Script}
-    C -->|1. Fetch RSS| D[Hacker News Best]
-    C -->|2. Scraping URL| E[Target Websites]
-    C -->|3. Summarize| F[OpenAI API (gpt-4o-mini)]
-    F -->|Generate Markdown| G[Local File (.md)]
-    G -->|Git Push| H[GitHub Repository]
-    H -->|Auto Deploy| I[Zenn (Draft)]
+    A["Cron Schedule / Manual"] -->|Trigger| B["GitHub Actions"]
+    B --> C{"Python Script"}
+    C -->|1. Fetch RSS| D["Hacker News Best"]
+    C -->|2. Scraping URL| E["Target Websites"]
+    C -->|3. Summarize| F["OpenAI API (gpt-4o-mini)"]
+    F -->|Generate Markdown| G["Local File (.md)"]
+    G -->|Git Push| H["GitHub Repository"]
+    H -->|Auto Deploy| I["Zenn (Draft)"]
 
 🚀 機能・特徴
 Smart Curation: Hacker Newsの "Best" カテゴリからトップ記事（7本）を自動抽出。
